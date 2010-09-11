@@ -4,16 +4,13 @@ module ActiveBraintree
     attr_reader :errors
 
     def initialize(opts = {})
-      @errors = ActiveRecord::Errors.new(self)
       result = opts[:transparent_redirect_result]
-      credit_card_result = normalized_credit_card(result)
 
-      if credit_card_result && result.success?
-        set_attributes(credit_card_result, :except => [:number, :cvv])
-      elsif credit_card_result && !result.success?
-        result.errors.for(:customer).for(:credit_card).each do |error|
-          @errors.add(error.attribute, error.message)
-        end
+      if result
+        @errors = ActiveRecord::Errors.new(self)
+        add_errors(result.errors.for(:customer).for(:credit_card)) unless result.success?
+
+        credit_card_result = normalized_credit_card(result)
         set_attributes(credit_card_result, :except => [:number, :cvv])
       end
     end
