@@ -1,7 +1,5 @@
 module ActiveBraintree
   module MagicAttributes
-    require 'ostruct'
-
     def self.included(base)
       base.extend(ClassMethods)
     end
@@ -13,10 +11,6 @@ module ActiveBraintree
     end
 
     def set_attributes(result, opts = { :except => [] })
-      if result.is_a?(Hash)
-        result = OpenStruct.new(result)
-      end
-
       (attributes - opts[:except]).each do |attr|
         instance_variable_set("@#{attr}".to_sym, result.send(attr))
       end

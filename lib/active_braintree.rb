@@ -1,3 +1,4 @@
+require 'ostruct'
 require 'active_record'
 ActiveRecord::ActiveRecordError
 require 'active_braintree/magic_attributes'
