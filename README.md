@@ -1,1 +1,3 @@
-bundler 1.0.0.rc.6
+# ActiveBraintree
+
+ActiveRecord-like classes for working with Braintree
