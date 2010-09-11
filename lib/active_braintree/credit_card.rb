@@ -5,14 +5,18 @@ module ActiveBraintree
 
     def initialize(opts = {})
       result = opts[:transparent_redirect_result]
+      @errors = ActiveRecord::Errors.new(self)
 
       if result
-        @errors = ActiveRecord::Errors.new(self)
         add_errors(result.errors.for(:customer).for(:credit_card)) unless result.success?
 
         credit_card_result = normalized_credit_card(result)
         set_attributes(credit_card_result, :except => [:number, :cvv])
       end
+    end
+
+    def self.human_name
+      'Credit Card'
     end
 
     protected

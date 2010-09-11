@@ -1,14 +1,15 @@
 module ActiveBraintree
   class Customer < Base
     attributes :company, :email, :fax, :first_name, :last_name, :phone, :website
-    attr_reader :errors
+    attr_reader :errors, :credit_card
 
     def initialize(opts = {})
       result = opts[:transparent_redirect_result]
+      @errors = ActiveRecord::Errors.new(self)
 
       if result
-        @errors = ActiveRecord::Errors.new(self)
         add_errors(result.errors.for(:customer)) unless result.success?
+        add_errors(result.errors.for(:customer).for(:credit_card), :on_base => true) unless result.success?
 
         customer_result = normalized_customer(result)
         set_attributes(customer_result)
@@ -16,6 +17,14 @@ module ActiveBraintree
       else
         @credit_card = CreditCard.new
       end
+    end
+
+    def valid?
+      @errors.empty? && @credit_card.errors.empty?
+    end
+
+    def self.human_name
+      'Customer'
     end
 
     protected

@@ -3,7 +3,8 @@ require 'spec_helper'
 module ActiveBraintree
   describe Customer do
     before do
-      CreditCard.stub(:new)
+      credit_card = mock('credit card', :errors => [])
+      CreditCard.stub(:new).and_return(credit_card)
     end
 
     context 'initialization' do
@@ -43,7 +44,7 @@ module ActiveBraintree
 
     context 'initialization with a successful transparent redirect' do
       subject do
-        Customer.new(:transparent_redirect_result => successful_tr_customer_result_stub) 
+        Customer.new(:transparent_redirect_result => successful_tr_customer_result_stub)
       end
 
       it { should be_valid }
@@ -123,24 +124,80 @@ module ActiveBraintree
         CreditCard.should_receive(:new).with(:transparent_redirect_result => result)
         Customer.new(:transparent_redirect_result => result)
       end
+    end
 
-      describe '#errors' do
-        subject do
-          customer = Customer.new(:transparent_redirect_result => failed_tr_customer_result_stub)
-          customer.errors
+    describe '#errors' do
+      context 'after initialization' do
+        it 'has no errors' do
+          subject.should have(:no).errors
+        end
+      end
+
+      context 'after initialization with a successful result' do
+        subject { Customer.new(:transparent_redirect_result => successful_tr_customer_result_stub) }
+
+        it 'has no errors' do
+          subject.should have(:no).errors
+        end
+      end
+
+      context 'after initialization with a failed result' do
+        subject { Customer.new(:transparent_redirect_result => failed_tr_customer_result_stub) }
+
+        it 'has 3 errors' do
+          subject.should have(3).errors
         end
 
         it 'has errors on email' do
-          subject.on(:email).should == 'Email is an invalid format.'
+          subject.errors.on(:email).should == '^Email is an invalid format.'
+        end
+
+        it 'has errors on base' do
+          subject.errors.on_base.should == [
+            'Credit card number must be 12-19 digits.',
+            'Credit card type is not accepted by this merchant account.'
+          ]
         end
 
         it 'has no errors on first_name' do
-          subject.on(:first_name).should be_nil
+          subject.errors.on(:first_name).should be_nil
         end
+      end
+    end
 
-        it 'has 1 error' do
-          subject.size.should == 1
-        end
+    describe '.human_name' do
+      it 'returns "Customer"' do
+        Customer.human_name.should == 'Customer'
+      end
+    end
+
+    describe '.human_attribute_name' do
+      it 'returns a human friendly version for first_name' do
+        Customer.human_attribute_name('first_name').should == 'First name'
+      end
+
+      it 'returns a human friendly version for last_name' do
+        Customer.human_attribute_name('last_name').should == 'Last name'
+      end
+
+      it 'returns a human friendly version for company' do
+        Customer.human_attribute_name('company').should == 'Company'
+      end
+
+      it 'returns a human friendly version for email' do
+        Customer.human_attribute_name('email').should == 'Email'
+      end
+
+      it 'returns a human friendly version for phone' do
+        Customer.human_attribute_name('phone').should == 'Phone'
+      end
+
+      it 'returns a human friendly version for fax' do
+        Customer.human_attribute_name('fax').should == 'Fax'
+      end
+
+      it 'returns a human friendly version for website' do
+        Customer.human_attribute_name('website').should == 'Website'
       end
     end
   end

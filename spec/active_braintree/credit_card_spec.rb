@@ -74,27 +74,72 @@ module ActiveBraintree
       it 'set the expiration_year' do
         subject.expiration_year.should == '2015'
       end
+    end
 
-      describe '#errors' do
-        subject do
-          credit_card = CreditCard.new(:transparent_redirect_result => failed_tr_customer_result_stub)
-          credit_card.errors
+    describe '#errors' do
+      context 'after initialization' do
+        it 'has no errors' do
+          subject.should have(:no).errors
+        end
+      end
+
+      context 'after initialization with a successful result' do
+        subject { CreditCard.new(:transparent_redirect_result => successful_tr_customer_result_stub) }
+
+        it 'has no errors' do
+          subject.should have(:no).errors
+        end
+      end
+
+      context 'after initialization with a failed result' do
+        subject { CreditCard.new(:transparent_redirect_result => failed_tr_customer_result_stub) }
+
+        it 'has 2 errors' do
+          subject.should have(2).errors
         end
 
         it 'has errors on number' do
-          subject.on(:number).should == [
-            'Credit card number must be 12-19 digits.',
-            'Credit card type is not accepted by this merchant account.'
+          subject.errors.on(:number).should == [
+            '^Credit card number must be 12-19 digits.',
+            '^Credit card type is not accepted by this merchant account.'
           ]
         end
 
         it 'has no errors on cardholder_name' do
-          subject.on(:cardholder_name).should be_nil
+          subject.errors.on(:cardholder_name).should be_nil
         end
+      end
+    end
 
-        it 'has 2 errors' do
-          subject.size.should == 2
-        end
+    describe '.human_name' do
+      it 'returns "Credit Card"' do
+        CreditCard.human_name.should == 'Credit Card'
+      end
+    end
+
+    describe '.human_attribute_name' do
+      it 'returns a human friendly version for cardholder_name' do
+        CreditCard.human_attribute_name('cardholder_name').should == 'Cardholder name'
+      end
+
+      it 'returns a human friendly version for number' do
+        CreditCard.human_attribute_name('number').should == 'Number'
+      end
+
+      it 'returns a human friendly version for cvv' do
+        CreditCard.human_attribute_name('cvv').should == 'Cvv'
+      end
+
+      it 'returns a human friendly version for expiration_date' do
+        CreditCard.human_attribute_name('expiration_date').should == 'Expiration date'
+      end
+
+      it 'returns a human friendly version for expiration_month' do
+        CreditCard.human_attribute_name('expiration_month').should == 'Expiration month'
+      end
+
+      it 'returns a human friendly version for expiration_year' do
+        CreditCard.human_attribute_name('expiration_year').should == 'Expiration year'
       end
     end
   end
