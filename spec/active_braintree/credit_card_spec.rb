@@ -75,7 +75,7 @@ module ActiveBraintree
         subject.expiration_year.should == '2015'
       end
 
-      describe '#errrs' do
+      describe '#errors' do
         subject do
           credit_card = CreditCard.new(:transparent_redirect_result => failed_tr_customer_result_stub)
           credit_card.errors
